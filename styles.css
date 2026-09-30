@@ -41,7 +41,7 @@ button {
   padding:
     max(24px, env(safe-area-inset-top))
     max(16px, env(safe-area-inset-right))
-    calc(118px + env(safe-area-inset-bottom))
+    max(32px, calc(20px + env(safe-area-inset-bottom)))
     max(16px, env(safe-area-inset-left));
 }
 
@@ -105,21 +105,14 @@ h1 {
 }
 
 .add-panel {
-  position: fixed;
-  z-index: 10;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: max(10px, env(safe-area-inset-bottom));
-  left: max(12px, env(safe-area-inset-left));
-  width: auto;
-  max-width: 616px;
-  margin: 0 auto;
-  padding: 12px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
   border: 1px solid rgba(43, 75, 61, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 36px rgba(28, 43, 34, 0.18);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(43, 56, 46, 0.09);
+  scroll-margin-block: 20px;
 }
 
 .list-heading-row h2 {
@@ -354,7 +347,7 @@ h1 {
   position: fixed;
   z-index: 20;
   right: 16px;
-  bottom: calc(92px + env(safe-area-inset-bottom));
+  bottom: max(12px, calc(10px + env(safe-area-inset-bottom)));
   left: 16px;
   display: flex;
   width: min(calc(100% - 32px), 460px);

@@ -1,5 +1,7 @@
 const form = document.querySelector("#item-form");
 const input = document.querySelector("#item-input");
+const addButton = document.querySelector(".add-button");
+const addPanel = document.querySelector(".add-panel");
 const list = document.querySelector("#shopping-list");
 const emptyState = document.querySelector("#empty-state");
 const itemCount = document.querySelector("#item-count");
@@ -48,12 +50,57 @@ function saveItems() {
 const items = loadItems();
 let deletedItem = null;
 let undoTimer = null;
+let visibilityFrame = null;
+let visibilityTimers = [];
+let ignoreNextAddClick = false;
 
 today.textContent = new Intl.DateTimeFormat("ja-JP", {
   month: "long",
   day: "numeric",
   weekday: "short",
 }).format(new Date());
+
+function keepInputVisible(behavior = "smooth") {
+  window.cancelAnimationFrame(visibilityFrame);
+  visibilityFrame = window.requestAnimationFrame(() => {
+    if (document.activeElement !== input) {
+      return;
+    }
+
+    const panelRect = addPanel.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+    const margin = 16;
+
+    if (panelRect.bottom > viewportBottom - margin) {
+      window.scrollBy({
+        top: panelRect.bottom - viewportBottom + margin,
+        behavior,
+      });
+    } else if (panelRect.top < viewportTop + margin) {
+      window.scrollBy({
+        top: panelRect.top - viewportTop - margin,
+        behavior,
+      });
+    }
+  });
+}
+
+function scheduleInputVisibility() {
+  visibilityTimers.forEach((timer) => window.clearTimeout(timer));
+  visibilityTimers = [0, 300, 600].map((delay) =>
+    window.setTimeout(
+      () => keepInputVisible(delay === 0 ? "auto" : "smooth"),
+      delay,
+    ),
+  );
+}
+
+function focusInput() {
+  input.focus({ preventScroll: true });
+  scheduleInputVisibility();
+}
 
 function updateSummary() {
   const completedCount = items.filter((item) => item.completed).length;
@@ -163,7 +210,7 @@ form.addEventListener("submit", (event) => {
   if (!itemName) {
     input.setAttribute("aria-invalid", "true");
     inputError.textContent = "商品名を入力してください。";
-    input.focus();
+    focusInput();
     return;
   }
 
@@ -180,8 +227,46 @@ form.addEventListener("submit", (event) => {
   input.removeAttribute("aria-invalid");
   inputError.textContent = "";
   updateSummary();
-  input.focus();
+  focusInput();
 });
+
+input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.isComposing) {
+    event.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+addButton.addEventListener(
+  "touchend",
+  (event) => {
+    if (document.activeElement === input) {
+      event.preventDefault();
+      ignoreNextAddClick = true;
+      form.requestSubmit();
+      window.setTimeout(() => {
+        ignoreNextAddClick = false;
+      }, 0);
+    }
+  },
+  { passive: false },
+);
+
+addButton.addEventListener("click", (event) => {
+  if (ignoreNextAddClick) {
+    event.preventDefault();
+    ignoreNextAddClick = false;
+  }
+});
+
+input.addEventListener("focus", scheduleInputVisibility);
+input.addEventListener("blur", () => {
+  visibilityTimers.forEach((timer) => window.clearTimeout(timer));
+  visibilityTimers = [];
+});
+
+window.visualViewport?.addEventListener("resize", () => keepInputVisible("auto"));
+window.visualViewport?.addEventListener("scroll", () => keepInputVisible("auto"));
 
 input.addEventListener("input", () => {
   if (input.value.trim()) {

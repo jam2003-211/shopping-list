@@ -1,4 +1,4 @@
-const CACHE_NAME = "shopping-list-v2";
+const CACHE_NAME = "shopping-list-v3";
 const BASE_URL = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("index.html", BASE_URL).href;
 const APP_SHELL = [
